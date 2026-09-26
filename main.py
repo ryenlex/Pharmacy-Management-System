@@ -1,6 +1,6 @@
 import customtkinter as ctk
 from tkinter import messagebox
-from datetime import date
+from datetime import date, datetime, timedelta
 
 from tkcalendar import Calendar
 
@@ -156,7 +156,15 @@ class PharmacyApp(ctk.CTk):
         self.clear_page()
 
         total, stock, low, expired = dashboard_counts()
-
+        today = date.today()
+        expiring_soon = 0
+        for med in fetch_medicines():
+           try:
+             expiry_date = datetime.strptime(med[5], "%Y-%m-%d").date()
+             if today <= expiry_date <= today + timedelta(days=30):
+                expiring_soon += 1
+           except (ValueError, TypeError):
+                continue
         cards = ctk.CTkFrame(self.page, fg_color="transparent")
         cards.pack(fill="x", pady=(5, 20))
 
@@ -164,7 +172,7 @@ class PharmacyApp(ctk.CTk):
         self.card(cards, "Total Stock", stock)
         self.card(cards, "Low Stock Items", low)
         self.card(cards, "Expired Items", expired)
-
+        self.card(cards, "Expiring Soon (30d)", expiring_soon)
         welcome = ctk.CTkFrame(self.page, corner_radius=18, fg_color=self.theme["card"])
         welcome.pack(fill="x", padx=8, pady=8)
 

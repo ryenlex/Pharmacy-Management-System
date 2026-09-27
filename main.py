@@ -282,7 +282,12 @@ class PharmacyApp(ctk.CTk):
             ).grid(row=0, column=i, padx=8, pady=12, sticky="w")
 
         medicines = fetch_medicines()
-
+        def expiry_sort_key(med):
+            try:
+              return datetime.strptime(med[5], "%Y-%m-%d").date()
+            except (ValueError, TypeError):
+              return date.max
+        medicines = sorted(medicines, key=expiry_sort_key)
         row_index = 1
         for med in medicines:
             med_id, name, category_name, quantity, price, expiry = med

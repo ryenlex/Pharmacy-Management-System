@@ -225,6 +225,10 @@ class PharmacyApp(ctk.CTk):
 
         search = ctk.CTkEntry(top, placeholder_text="Search medicine name...")
         search.pack(side="left", fill="x", expand=True, padx=(8, 8))
+        search.bind(
+           "<KeyRelease>",
+            lambda e: self.refresh_medicine_table(search.get(), category.get(), stock_filter.get()),
+        )
 
         category = ctk.CTkComboBox(
             top,
@@ -241,7 +245,12 @@ class PharmacyApp(ctk.CTk):
         )
         stock_filter.set("All Stock")
         stock_filter.pack(side="left", padx=8)
+        def live_filter(event=None):
+           self.refresh_medicine_table(search.get(), category.get(), stock_filter.get())
 
+        search.bind("<KeyRelease>", live_filter)
+        category.configure(command=lambda choice: live_filter())
+        stock_filter.configure(command=lambda choice: live_filter())
         ctk.CTkButton(
             top,
             text="Search / Filter",

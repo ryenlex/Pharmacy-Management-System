@@ -12,7 +12,7 @@ from database.db import (
     dashboard_counts,
 )
 from ui.theme import THEMES, apply_appearance, set_theme
-
+from ui.settings import load_settings, save_settings
 ctk.set_default_color_theme("blue")
 initialize_database()
 
@@ -24,11 +24,11 @@ class PharmacyApp(ctk.CTk):
         self.title("Pharmacy Management System")
         self.geometry("1200x720")
         self.minsize(1000, 650)
-
-        self.theme_name = "Blue"
+        saved = load_settings()
+        self.theme_name = saved["theme_name"]
         self.theme = set_theme(self.theme_name)
-        apply_appearance("Light")
-
+        apply_appearance(saved["mode"])
+        self.current_mode = saved["mode"]
         self.grid_columnconfigure(1, weight=1)
         self.grid_rowconfigure(0, weight=1)
 
@@ -581,7 +581,7 @@ class PharmacyApp(ctk.CTk):
             command=self.change_mode,
             width=200,
         )
-        mode.set("Light")
+        mode.set(self.current_mode)
         mode.pack(anchor="w", padx=25, pady=(5, 20))
 
         ctk.CTkLabel(card, text="Custom Theme").pack(anchor="w", padx=25)
@@ -596,14 +596,16 @@ class PharmacyApp(ctk.CTk):
 
     def change_mode(self, mode):
         apply_appearance(mode)
-
+        self.current_mode = mode
+        save_settings(self.theme_name, self.current_mode)
+        self.refresh_current_page()
     def change_theme(self, name):
         self.theme_name = name
         self.theme = set_theme(name)
-
+        save_settings(self.theme_name, self.current_mode)
         # Sidebar colors
         self.sidebar.configure(fg_color=self.theme["sidebar"])
-        self.show_settings()
+        self.refresh_current_page()
         self.update_theme_widgets()
 
     def update_theme_widgets(self):

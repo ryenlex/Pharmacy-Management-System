@@ -350,6 +350,7 @@ class PharmacyApp(ctk.CTk):
         dialog.grab_set()
 
         fields = {}
+        error_labels = {}
         labels = [
             ("Name", "name"),
             ("Category", "category"),
@@ -363,7 +364,19 @@ class PharmacyApp(ctk.CTk):
             entry = ctk.CTkEntry(dialog)
             entry.pack(fill="x", padx=30)
             fields[key] = entry
-
+            error_label = ctk.CTkLabel(
+               dialog,
+               text="",
+               text_color="#DC2626",
+               font=ctk.CTkFont(size=12),
+               anchor="w",
+            )
+            error_label.pack(fill="x", padx=30, pady=(2, 0))
+            error_labels[key] = error_label
+        def clear_errors():
+           for key, entry in fields.items():
+             entry.configure(border_color=("#979DA2", "#565B5E"))  # default CTk border
+             error_labels[key].configure(text="")
         if medicine:
             _, name, category, quantity, price, expiry = medicine
             fields["name"].insert(0, name)
@@ -373,16 +386,48 @@ class PharmacyApp(ctk.CTk):
             fields["expiry"].insert(0, expiry)
 
         def save():
-            try:
+                clear_errors()
+                has_error = False
                 name = fields["name"].get().strip()
                 category = fields["category"].get().strip() or "Other"
-                quantity = int(fields["quantity"].get())
-                price = float(fields["price"].get())
                 expiry = fields["expiry"].get().strip()
+                if not name:
+                  error_labels["name"].configure(text="Name is required")
+                  fields["name"].configure(border_color="#DC2626")
+                  has_error = True
+                try:
+                   quantity = int(fields["quantity"].get())
+                   if quantity < 0:
+                      raise ValueError
+                except ValueError:
+                  error_labels["quantity"].configure(text="Enter a valid non-negative number")
+                  fields["quantity"].configure(border_color="#DC2626")
+                  has_error = True
+                  quantity = None
+                try:
+                   price = float(fields["price"].get())
+                   if price < 0:
+                      raise ValueError
+                except ValueError:
+                   error_labels["price"].configure(text="Enter a valid non-negative price")
+                   fields["price"].configure(border_color="#DC2626")
+                   has_error = True
+                   price = None
+                
 
-                if not name or not expiry:
-                    raise ValueError("Please fill all required fields.")
-
+                if not expiry:
+                    error_labels["expiry"].configure(text="Expiry date is required")
+                    fields["expiry"].configure(border_color="#DC2626")
+                    has_error = True
+                else:
+                    try:
+                       datetime.strptime(expiry, "%Y-%m-%d")
+                    except ValueError:
+                       error_labels["expiry"].configure(text="Use format YYYY-MM-DD")
+                       fields["expiry"].configure(border_color="#DC2626")
+                       has_error = True
+                if has_error:
+                    return
                 if medicine:
                     update_medicine(
                         medicine[0], name, category, quantity, price, expiry
@@ -392,8 +437,7 @@ class PharmacyApp(ctk.CTk):
 
                 dialog.destroy()
                 self.show_medicines()
-            except ValueError as exc:
-               self.show_error_dialog("Invalid Input", str(exc))
+                
 
         ctk.CTkButton(
             dialog,

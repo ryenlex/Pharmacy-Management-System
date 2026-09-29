@@ -1,5 +1,4 @@
 import customtkinter as ctk
-from tkinter import messagebox
 from datetime import date, datetime, timedelta
 
 from tkcalendar import Calendar
@@ -394,7 +393,7 @@ class PharmacyApp(ctk.CTk):
                 dialog.destroy()
                 self.show_medicines()
             except ValueError as exc:
-                messagebox.showerror("Invalid Input", str(exc), parent=dialog)
+               self.show_error_dialog("Invalid Input", str(exc))
 
         ctk.CTkButton(
             dialog,
@@ -406,14 +405,78 @@ class PharmacyApp(ctk.CTk):
         ).pack(fill="x", padx=30, pady=25)
 
     def delete_medicine_confirm(self, medicine_id):
-        if messagebox.askyesno(
+        self.show_confirm_dialog(
             "Delete Medicine",
             "Are you sure you want to delete this medicine?",
-            parent=self,
-        ):
-            delete_medicine(medicine_id)
-            self.show_medicines()
+            on_confirm=lambda: (delete_medicine(medicine_id), self.show_medicines()),
+        )
 
+    def show_confirm_dialog(self, title, message, on_confirm):
+        dialog = ctk.CTkToplevel(self)
+        dialog.title(title)
+        dialog.geometry("380x180")
+        dialog.transient(self)
+        dialog.grab_set()
+        dialog.configure(fg_color=self.theme["card"])
+
+        ctk.CTkLabel(
+            dialog,
+            text=message,
+            text_color=self.theme["text"],
+            wraplength=320,
+            justify="center",
+        ).pack(padx=25, pady=(30, 20))
+
+        btn_row = ctk.CTkFrame(dialog, fg_color="transparent")
+        btn_row.pack(pady=10)
+
+        def confirm_and_close():
+            dialog.destroy()
+            on_confirm()
+
+        ctk.CTkButton(
+            btn_row,
+            text="Cancel",
+            fg_color="transparent",
+            border_width=1,
+            text_color=self.theme["text"],
+            command=dialog.destroy,
+            width=100,
+        ).pack(side="left", padx=10)
+
+        ctk.CTkButton(
+            btn_row,
+            text="Confirm",
+            fg_color="#DC2626",
+            hover_color="#B91C1C",
+            command=confirm_and_close,
+            width=100,
+        ).pack(side="left", padx=10)
+
+    def show_error_dialog(self, title, message):
+        dialog = ctk.CTkToplevel(self)
+        dialog.title(title)
+        dialog.geometry("380x160")
+        dialog.transient(self)
+        dialog.grab_set()
+        dialog.configure(fg_color=self.theme["card"])
+
+        ctk.CTkLabel(
+            dialog,
+            text=message,
+            text_color=self.theme["text"],
+            wraplength=320,
+            justify="center",
+        ).pack(padx=25, pady=(30, 20))
+
+        ctk.CTkButton(
+            dialog,
+            text="OK",
+            fg_color=self.theme["primary"],
+            hover_color=self.theme["hover"],
+            command=dialog.destroy,
+            width=100,
+        ).pack(pady=10)
     # ---------- Calendar ----------
     def show_calendar(self):
         self.page_title.configure(text="Calendar")

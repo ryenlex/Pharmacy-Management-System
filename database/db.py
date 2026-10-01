@@ -1,6 +1,6 @@
 import sqlite3
 from pathlib import Path
-
+from datetime import datetime
 DB_PATH = Path(__file__).resolve().parent / "pharmacy.db"
 
 
@@ -22,30 +22,38 @@ def initialize_database():
             )
             """
         )
+        existing_columns = [
+            row[1] for row in conn.execute("PRAGMA table_info(medicines)").fetchall()
+        ]
+        if "last_updated" not in existing_columns:
+            conn.execute(
+                "ALTER TABLE medicines ADD COLUMN last_updated TEXT"
+            )
         conn.commit()
 
-
 def add_medicine(name, category, quantity, price, expiry_date):
+    now = datetime.now().strftime("%Y-%m-%d %H:%M")
     with get_connection() as conn:
         conn.execute(
             """
             INSERT INTO medicines (name, category, quantity, price, expiry_date)
             VALUES (?, ?, ?, ?, ?)
             """,
-            (name, category, quantity, price, expiry_date),
+            (name, category, quantity, price, expiry_date, now),
         )
         conn.commit()
 
 
 def update_medicine(medicine_id, name, category, quantity, price, expiry_date):
+    now = datetime.now().strftime("%Y-%m-%d %H:%M")
     with get_connection() as conn:
         conn.execute(
             """
             UPDATE medicines
-            SET name = ?, category = ?, quantity = ?, price = ?, expiry_date = ?
+            SET name = ?, category = ?, quantity = ?, price = ?, expiry_date = ?, last_updated = ?
             WHERE id = ?
             """,
-            (name, category, quantity, price, expiry_date, medicine_id),
+            (name, category, quantity, price, expiry_date, now, medicine_id),
         )
         conn.commit()
 
@@ -60,7 +68,7 @@ def fetch_medicines():
     with get_connection() as conn:
         return conn.execute(
             """
-            SELECT id, name, category, quantity, price, expiry_date
+            SELECT id, name, category, quantity, price, expiry_date, last_updated
             FROM medicines
             ORDER BY name COLLATE NOCASE
             """

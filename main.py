@@ -472,7 +472,7 @@ class PharmacyApp(ctk.CTk):
             hover_color=self.theme["hover"],
             height=44,
         ).pack(fill="x", padx=30, pady=25)
-
+        dialog.bind("<Return>", lambda event: save())    
     def delete_medicine_confirm(self, medicine_id):
         self.show_confirm_dialog(
             "Delete Medicine",

@@ -240,7 +240,7 @@ class PharmacyApp(ctk.CTk):
 
         stock_filter = ctk.CTkComboBox(
             top,
-            values=["All Stock", "Low Stock"],
+            values=["All Stock", "Low Stock", "Expired"],
             width=130,
         )
         stock_filter.set("All Stock")
@@ -306,7 +306,13 @@ class PharmacyApp(ctk.CTk):
                 continue
             if stock_filter == "Low Stock" and quantity > 10:
                 continue
-
+            if stock_filter == "Expired":
+               try:
+                  expiry_date = datetime.strptime(expiry, "%Y-%m-%d").date()
+                  if expiry_date >= date.today():
+                     continue
+               except (ValueError, TypeError):
+                     continue
             values = [
                 med_id,
                 name,

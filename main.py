@@ -155,6 +155,9 @@ class PharmacyApp(ctk.CTk):
         self.clear_page()
 
         total, stock, low, expired = dashboard_counts()
+        all_meds = fetch_medicines()
+        last_updated_times = [m[6] for m in all_meds if m[6]]
+        most_recent = max(last_updated_times) if last_updated_times else "No updates yet"
         today = date.today()
         expiring_soon = 0
         for med in fetch_medicines():
@@ -172,6 +175,12 @@ class PharmacyApp(ctk.CTk):
         self.card(cards, "Low Stock Items", low)
         self.card(cards, "Expired Items", expired)
         self.card(cards, "Expiring Soon (30d)", expiring_soon)
+        ctk.CTkLabel(
+            self.page,
+            text=f"Last medicine record update: {most_recent}",
+            text_color=self.theme["muted"],
+            font=ctk.CTkFont(size=12),
+        ).pack(anchor="w", padx=8, pady=(0, 10))
         welcome = ctk.CTkFrame(self.page, corner_radius=18, fg_color=self.theme["card"])
         welcome.pack(fill="x", padx=8, pady=8)
 
@@ -278,8 +287,8 @@ class PharmacyApp(ctk.CTk):
         for widget in self.table_container.winfo_children():
             widget.destroy()
 
-        headers = ["ID", "Name", "Category", "Quantity", "Price", "Expiry", "Actions"]
-        widths = [55, 220, 120, 90, 90, 120, 150]
+        headers = ["ID", "Name", "Category", "Quantity", "Price", "Expiry", "Last Updated", "Actions"]
+        widths = [55, 180, 110, 80, 80, 140, 150]
 
         for i, header in enumerate(headers):
             ctk.CTkLabel(
@@ -298,7 +307,7 @@ class PharmacyApp(ctk.CTk):
         medicines = sorted(medicines, key=expiry_sort_key)
         row_index = 1
         for med in medicines:
-            med_id, name, category_name, quantity, price, expiry = med
+            med_id, name, category_name, quantity, price, expiry, last_updated = med
 
             if search_text and search_text.lower() not in name.lower():
                 continue
@@ -320,6 +329,7 @@ class PharmacyApp(ctk.CTk):
                 quantity,
                 f"₹{price:.2f}",
                 expiry,
+                last_updated or "—",
             ]
 
             for col, value in enumerate(values):
@@ -330,7 +340,7 @@ class PharmacyApp(ctk.CTk):
                 ).grid(row=row_index, column=col, padx=8, pady=9, sticky="w")
 
             action_box = ctk.CTkFrame(self.table_container, fg_color="transparent")
-            action_box.grid(row=row_index, column=6, padx=5, sticky="w")
+            action_box.grid(row=row_index, column=7, padx=5, sticky="w")
 
             ctk.CTkButton(
                 action_box,
@@ -355,7 +365,7 @@ class PharmacyApp(ctk.CTk):
                 self.table_container,
                 text="No medicines found.",
                 text_color=self.theme["muted"],
-            ).grid(row=1, column=0, columnspan=7, pady=40)
+            ).grid(row=1, column=0, columnspan=8, pady=40)
 
     def open_medicine_form(self, medicine=None):
         dialog = ctk.CTkToplevel(self)
@@ -393,7 +403,7 @@ class PharmacyApp(ctk.CTk):
              entry.configure(border_color=("#979DA2", "#565B5E"))  # default CTk border
              error_labels[key].configure(text="")
         if medicine:
-            _, name, category, quantity, price, expiry = medicine
+            _, name, category, quantity, price, expiry, _ = medicine
             fields["name"].insert(0, name)
             fields["category"].insert(0, category)
             fields["quantity"].insert(0, str(quantity))

@@ -29,6 +29,7 @@ class PharmacyApp(ctk.CTk):
         self.theme = set_theme(self.theme_name)
         apply_appearance(saved["mode"])
         self.current_mode = saved["mode"]
+        self.low_stock_threshold = saved["low_stock_threshold"]
         self.grid_columnconfigure(1, weight=1)
         self.grid_rowconfigure(0, weight=1)
 
@@ -154,7 +155,7 @@ class PharmacyApp(ctk.CTk):
         self.page_title.configure(text="Dashboard")
         self.clear_page()
 
-        total, stock, low, expired = dashboard_counts()
+        total, stock, low, expired = dashboard_counts(self.low_stock_threshold)
         all_meds = fetch_medicines()
         last_updated_times = [m[6] for m in all_meds if m[6]]
         most_recent = max(last_updated_times) if last_updated_times else "No updates yet"
@@ -313,7 +314,7 @@ class PharmacyApp(ctk.CTk):
                 continue
             if category != "All" and category_name != category:
                 continue
-            if stock_filter == "Low Stock" and quantity > 10:
+            if stock_filter == "Low Stock" and quantity > self.low_stock_threshold:
                 continue
             if stock_filter == "Expired":
                try:
@@ -618,7 +619,29 @@ class PharmacyApp(ctk.CTk):
         )
         theme.set(self.theme_name)
         theme.pack(anchor="w", padx=25, pady=(5, 25))
+        ctk.CTkLabel(card, text="Low Stock Threshold").pack(anchor="w", padx=25)
+        threshold_entry = ctk.CTkEntry(card, width=200)
+        threshold_entry.insert(0, str(self.low_stock_threshold))
+        threshold_entry.pack(anchor="w", padx=25, pady=(5, 10))
 
+        def save_threshold():
+           try:
+              value = int(threshold_entry.get())
+              if value < 0:
+                 raise ValueError
+              self.low_stock_threshold = value
+              save_settings(self.theme_name, self.current_mode, value)
+              self.show_error_dialog("Saved", f"Low stock threshold set to {value}.")
+           except ValueError:
+              self.show_error_dialog("Invalid Input", "Enter a non-negative whole number.")
+        ctk.CTkButton(
+           card,
+           text="Save Threshold",
+           command=save_threshold,
+           fg_color=self.theme["primary"],
+           hover_color=self.theme["hover"],
+            width=200,
+        ).pack(anchor="w", padx=25, pady=(0, 25))
     def change_mode(self, mode):
         apply_appearance(mode)
         self.current_mode = mode

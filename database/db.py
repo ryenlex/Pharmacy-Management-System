@@ -36,8 +36,8 @@ def add_medicine(name, category, quantity, price, expiry_date):
     with get_connection() as conn:
         conn.execute(
             """
-            INSERT INTO medicines (name, category, quantity, price, expiry_date)
-            VALUES (?, ?, ?, ?, ?)
+            INSERT INTO medicines (name, category, quantity, price, expiry_date, last_updated)
+            VALUES (?, ?, ?, ?, ?, ?)
             """,
             (name, category, quantity, price, expiry_date, now),
         )
@@ -75,14 +75,15 @@ def fetch_medicines():
         ).fetchall()
 
 
-def dashboard_counts():
+def dashboard_counts(low_stock_threshold=10):
     with get_connection() as conn:
         total = conn.execute("SELECT COUNT(*) FROM medicines").fetchone()[0]
         stock = conn.execute(
             "SELECT COALESCE(SUM(quantity), 0) FROM medicines"
         ).fetchone()[0]
         low_stock = conn.execute(
-            "SELECT COUNT(*) FROM medicines WHERE quantity <= 10"
+            "SELECT COUNT(*) FROM medicines WHERE quantity <= ?",
+            (low_stock_threshold,),
         ).fetchone()[0]
         expired = conn.execute(
             "SELECT COUNT(*) FROM medicines WHERE date(expiry_date) < date('now')"

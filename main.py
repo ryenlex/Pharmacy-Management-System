@@ -1,8 +1,8 @@
 import customtkinter as ctk
 from datetime import date, datetime, timedelta
-
 from tkcalendar import Calendar
-
+from tkinter import filedialog
+from openpyxl import Workbook
 from database.db import (
     initialize_database,
     add_medicine,
@@ -278,6 +278,13 @@ class PharmacyApp(ctk.CTk):
             width=90,
         ).pack(side="left", padx=(8, 0))
 
+        ctk.CTkButton(
+            top,
+            text="⬇ Export Excel",
+            command=self.export_medicines_excel,
+            width=130,
+        ).pack(side="left", padx=(8, 0))
+
         table = ctk.CTkFrame(self.page, corner_radius=16, fg_color=self.theme["card"])
         table.pack(fill="both", expand=True, padx=8, pady=8)
 
@@ -367,6 +374,37 @@ class PharmacyApp(ctk.CTk):
                 text="No medicines found.",
                 text_color=self.theme["muted"],
             ).grid(row=1, column=0, columnspan=8, pady=40)
+    def export_medicines_excel(self):
+        file_path = filedialog.asksaveasfilename(
+            defaultextension=".xlsx",
+            filetypes=[("Excel files", "*.xlsx")],
+            title="Save Medicine Inventory As",
+            initialfile="medicine_inventory.xlsx",
+        )
+        if not file_path:
+            return 
+
+        medicines = fetch_medicines()
+        try:
+            wb = Workbook()
+            ws = wb.active
+            ws.title = "Medicines"
+
+            headers = ["ID", "Name", "Category", "Quantity", "Price", "Expiry Date", "Last Updated"]
+            ws.append(headers)
+
+            for med in medicines:
+                ws.append(list(med))
+
+            for col in ws.columns:
+                max_length = max(len(str(cell.value)) if cell.value else 0 for cell in col)
+                ws.column_dimensions[col[0].column_letter].width = max_length + 2
+        
+            wb.save(file_path)
+            self.show_error_dialog("Export Complete", f"Inventory exported to:\n{file_path}")
+        
+        except OSError as exc:
+            self.show_error_dialog("Export Failed", str(exc))
 
     def open_medicine_form(self, medicine=None):
         dialog = ctk.CTkToplevel(self)

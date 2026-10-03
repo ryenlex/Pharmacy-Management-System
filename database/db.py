@@ -29,8 +29,31 @@ def initialize_database():
             conn.execute(
                 "ALTER TABLE medicines ADD COLUMN last_updated TEXT"
             )
-        conn.commit()
+        conn.execute(
+            """
+            CREATE TABLE IF NOT EXISTS categories (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                name TEXT NOT NULL UNIQUE
+            )
+            """
+        )
 
+        default_categories = ["Tablet", "Capsule", "Syrup", "Injection", "Other"]
+        for cat in default_categories:
+            conn.execute(
+                "INSERT OR IGNORE INTO categories (name) VALUES (?)", (cat,)
+            )
+
+        conn.commit()    
+
+def add_category(name):
+    name = name.strip()
+    if not name:
+        return
+    with get_connection() as conn:
+        conn.execute("INSERT OR IGNORE INTO categories (name) VALUES (?)", (name,))
+        conn.commit()
+        
 def add_medicine(name, category, quantity, price, expiry_date):
     now = datetime.now().strftime("%Y-%m-%d %H:%M")
     with get_connection() as conn:
@@ -73,7 +96,11 @@ def fetch_medicines():
             ORDER BY name COLLATE NOCASE
             """
         ).fetchall()
-
+    
+def fetch_categories():
+    with get_connection() as conn:
+        rows = conn.execute("SELECT name FROM categories ORDER BY name COLLATE NOCASE").fetchall()
+        return [row[0] for row in rows]
 
 def dashboard_counts(low_stock_threshold=10):
     with get_connection() as conn:

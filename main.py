@@ -10,6 +10,8 @@ from database.db import (
     delete_medicine,
     fetch_medicines,
     dashboard_counts,
+    fetch_categories,
+    add_category,
 )
 from ui.theme import THEMES, apply_appearance, set_theme
 from ui.settings import load_settings, save_settings
@@ -242,7 +244,7 @@ class PharmacyApp(ctk.CTk):
 
         category = ctk.CTkComboBox(
             top,
-            values=["All", "Tablet", "Capsule", "Syrup", "Injection", "Other"],
+            values=["All"] + fetch_categories(),
             width=150,
         )
         category.set("All")
@@ -425,7 +427,11 @@ class PharmacyApp(ctk.CTk):
 
         for i, (label_text, key) in enumerate(labels):
             ctk.CTkLabel(dialog, text=label_text).pack(anchor="w", padx=30, pady=(15, 5))
-            entry = ctk.CTkEntry(dialog)
+            if key == "category":
+               entry = ctk.CTkComboBox(dialog, values=fetch_categories())
+               entry.set("")
+            else:
+               entry = ctk.CTkEntry(dialog)
             entry.pack(fill="x", padx=30)
             fields[key] = entry
             error_label = ctk.CTkLabel(
@@ -454,6 +460,7 @@ class PharmacyApp(ctk.CTk):
                 has_error = False
                 name = fields["name"].get().strip()
                 category = fields["category"].get().strip() or "Other"
+                add_category(category)
                 expiry = fields["expiry"].get().strip()
                 if not name:
                   error_labels["name"].configure(text="Name is required")

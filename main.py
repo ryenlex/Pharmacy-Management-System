@@ -128,6 +128,7 @@ class PharmacyApp(ctk.CTk):
      {
         "Dashboard": self.show_dashboard,
         "Medicine Management": self.show_medicines,
+        "Medicine Categories": self.show_categories,
         "Calendar": self.show_calendar,
         "Settings": self.show_settings,
      }.get(text, self.show_dashboard)()
@@ -178,7 +179,7 @@ class PharmacyApp(ctk.CTk):
         cards = ctk.CTkFrame(self.page, fg_color="transparent")
         cards.pack(fill="x", pady=(5, 20))
 
-        self.card(cards, "Medicine Types", total, command=self.show_medicines)
+        self.card(cards, "Medicine Types", total, command=self.show_categories)
         self.card(cards, "Total Stock", stock, command=self.show_medicines)
         self.card(cards,"Low Stock Items", low, command=lambda: self.go_to_medicines_with_filter(stock_filter="Low Stock"),)
         self.card(cards, "Expired Items", expired, command=lambda: self.go_to_medicines_with_filter(stock_filter="Expired"),)
@@ -298,9 +299,41 @@ class PharmacyApp(ctk.CTk):
         self.table_container = table
         self.refresh_medicine_table()
 
-    def go_to_medicines_with_filter(self, stock_filter="All Stock"):
+    def show_categories(self):
+        self.page_title.configure(text="Medicine Categories")
+        self.clear_page()
+
+        all_meds = fetch_medicines()
+        categories = fetch_categories()
+   
+        counts = {cat: 0 for cat in categories}
+        for med in all_meds:
+           cat_name = med[2]
+           counts[cat_name] = counts.get(cat_name, 0) + 1
+
+        grid = ctk.CTkFrame(self.page, fg_color="transparent")
+        grid.pack(fill="x", pady=(5, 20))
+
+        for i, cat in enumerate(sorted(counts.keys())):
+           if i % 4 == 0:
+             row_frame = ctk.CTkFrame(grid, fg_color="transparent")
+             row_frame.pack(fill="x", pady=4)
+           self.card(
+             row_frame,
+             cat,
+             counts[cat],
+             command=lambda c=cat: self.go_to_medicines_with_filter(category=c),
+        )
+        if not counts:
+         ctk.CTkLabel(
+            self.page,
+            text="No categories found yet. Add a medicine to create one.",
+            text_color=self.theme["muted"],
+        ).pack(anchor="w", padx=8, pady=20)
+    
+    def go_to_medicines_with_filter(self, stock_filter="All Stock", category="All"):
      self.show_medicines()
-     self.refresh_medicine_table(stock_filter=stock_filter)
+     self.refresh_medicine_table(stock_filter=stock_filter, category=category)
 
     def refresh_medicine_table(self, search_text="", category="All", stock_filter="All Stock"):
         for widget in self.table_container.winfo_children():

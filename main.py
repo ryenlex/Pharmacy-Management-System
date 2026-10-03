@@ -132,24 +132,29 @@ class PharmacyApp(ctk.CTk):
         "Settings": self.show_settings,
      }.get(text, self.show_dashboard)()
 
-    def card(self, parent, title, value):
+    def card(self, parent, title, value, command=None):
         frame = ctk.CTkFrame(parent, corner_radius=16, fg_color=self.theme["card"])
         frame.pack(side="left", fill="both", expand=True, padx=8, pady=8)
 
-        ctk.CTkLabel(
+        title_label = ctk.CTkLabel(
             frame,
             text=title,
             text_color=self.theme["muted"],
             font=ctk.CTkFont(size=14),
-        ).pack(anchor="w", padx=20, pady=(18, 5))
+        )
+        title_label.pack(anchor="w", padx=20, pady=(18, 5))
 
-        ctk.CTkLabel(
+        value_label = ctk.CTkLabel(
             frame,
             text=str(value),
             text_color=self.theme["text"],
             font=ctk.CTkFont(size=30, weight="bold"),
-        ).pack(anchor="w", padx=20, pady=(0, 18))
-
+        )
+        value_label.pack(anchor="w", padx=20, pady=(0, 18))
+        if command:
+           for widget in (frame, title_label, value_label):
+             widget.configure(cursor="hand2")
+             widget.bind("<Button-1>", lambda event: command())
         return frame
 
     # ---------- Dashboard ----------
@@ -173,11 +178,11 @@ class PharmacyApp(ctk.CTk):
         cards = ctk.CTkFrame(self.page, fg_color="transparent")
         cards.pack(fill="x", pady=(5, 20))
 
-        self.card(cards, "Medicine Types", total)
-        self.card(cards, "Total Stock", stock)
-        self.card(cards, "Low Stock Items", low)
-        self.card(cards, "Expired Items", expired)
-        self.card(cards, "Expiring Soon (30d)", expiring_soon)
+        self.card(cards, "Medicine Types", total, command=self.show_medicines)
+        self.card(cards, "Total Stock", stock, command=self.show_medicines)
+        self.card(cards,"Low Stock Items", low, command=lambda: self.go_to_medicines_with_filter(stock_filter="Low Stock"),)
+        self.card(cards, "Expired Items", expired, command=lambda: self.go_to_medicines_with_filter(stock_filter="Expired"),)
+        self.card(cards, "Expiring Soon (30d)", expiring_soon, command=self.show_calendar)
         ctk.CTkLabel(
             self.page,
             text=f"Last medicine record update: {most_recent}",
@@ -292,6 +297,10 @@ class PharmacyApp(ctk.CTk):
 
         self.table_container = table
         self.refresh_medicine_table()
+
+    def go_to_medicines_with_filter(self, stock_filter="All Stock"):
+     self.show_medicines()
+     self.refresh_medicine_table(stock_filter=stock_filter)
 
     def refresh_medicine_table(self, search_text="", category="All", stock_filter="All Stock"):
         for widget in self.table_container.winfo_children():

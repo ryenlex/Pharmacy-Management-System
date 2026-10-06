@@ -652,14 +652,42 @@ class PharmacyApp(ctk.CTk):
         cal = Calendar(wrapper, selectmode="day", date_pattern="yyyy-mm-dd")
         cal.pack(pady=20)
 
+        cal.tag_config("expiring", background="orange", foreground="black")
+        cal.tag_config("expired", background="#DC2626", foreground="white")
+
+        today = date.today()
+        for med in fetch_medicines():
+            try:
+                med_date = datetime.strptime(med[5], "%Y-%m-%d").date()
+            except (ValueError, TypeError):
+                continue
+            if med_date < today:
+                cal.calevent_create(med_date, med[1], "expired")
+            else:
+                cal.calevent_create(med_date, med[1], "expiring")
+
+        legend = ctk.CTkFrame(wrapper, fg_color="transparent")
+        legend.pack(pady=(0, 10))
+        ctk.CTkLabel(legend, text="🟧 Upcoming expiry   🟥 Already expired", text_color=self.theme["muted"]).pack()
         result = ctk.CTkLabel(wrapper, text="", text_color=self.theme["muted"])
         result.pack(pady=10)
 
         def show_selected():
             selected = cal.get_date()
-            matched = [
-                med for med in fetch_medicines() if med[5] == selected
-            ]
+            try:
+                selected_date = datetime.strptime(selected, "%Y-%m-%d").date()
+            except ValueError:
+                result.configure(text="Invalid date selected.")
+                return
+            matched = []
+            for med in fetch_medicines():
+                try:
+                    med_date = datetime.strptime(med[5], "%Y-%m-%d").date()
+                    if med_date == selected_date:
+                        matched.append(med)
+                except (ValueError, TypeError):
+                    continue
+            
             if matched:
                 names = ", ".join(med[1] for med in matched)
                 result.configure(text=f"Expiry on {selected}: {names}")

@@ -677,6 +677,9 @@ class PharmacyApp(ctk.CTk):
         expired_swatch.pack(side="left", padx=(0, 6))
         expired_swatch.pack_propagate(False)
         ctk.CTkLabel(legend, text="Already expired", text_color=self.theme["muted"]).pack(side="left")
+
+        result = ctk.CTkLabel(wrapper, text="", text_color=self.theme["muted"], wraplength=400)
+        result.pack(pady=10)
         def show_selected():
             selected = cal.get_date()
             try:
@@ -739,29 +742,42 @@ class PharmacyApp(ctk.CTk):
         )
         theme.set(self.theme_name)
         theme.pack(anchor="w", padx=25, pady=(5, 25))
-        ctk.CTkLabel(card, text="Low Stock Threshold").pack(anchor="w", padx=25)
-        threshold_entry = ctk.CTkEntry(card, width=200)
+
+        inventory_card = ctk.CTkFrame(self.page, corner_radius=16, fg_color=self.theme["card"])
+        inventory_card.pack(fill="x", padx=8, pady=8)
+
+        ctk.CTkLabel(
+            inventory_card,
+            text="Inventory Settings",
+            font=ctk.CTkFont(size=20, weight="bold"),
+            text_color=self.theme["text"],
+        ).pack(anchor="w", padx=25, pady=(25, 15))
+
+        ctk.CTkLabel(inventory_card, text="Low Stock Threshold").pack(anchor="w", padx=25)
+        threshold_entry = ctk.CTkEntry(inventory_card, width=200)
         threshold_entry.insert(0, str(self.low_stock_threshold))
         threshold_entry.pack(anchor="w", padx=25, pady=(5, 10))
 
         def save_threshold():
-           try:
-              value = int(threshold_entry.get())
-              if value < 0:
-                 raise ValueError
-              self.low_stock_threshold = value
-              save_settings(self.theme_name, self.current_mode, value)
-              self.show_error_dialog("Saved", f"Low stock threshold set to {value}.")
-           except ValueError:
-              self.show_error_dialog("Invalid Input", "Enter a non-negative whole number.")
+            try:
+                value = int(threshold_entry.get())
+                if value < 0:
+                    raise ValueError
+                self.low_stock_threshold = value
+                save_settings(self.theme_name, self.current_mode, value)
+                self.show_error_dialog("Saved", f"Low stock threshold set to {value}.")
+            except ValueError:
+                self.show_error_dialog("Invalid Input", "Enter a non-negative whole number.")
+
         ctk.CTkButton(
-           card,
-           text="Save Threshold",
-           command=save_threshold,
-           fg_color=self.theme["primary"],
-           hover_color=self.theme["hover"],
+            inventory_card,
+            text="Save Threshold",
+            command=save_threshold,
+            fg_color=self.theme["primary"],
+            hover_color=self.theme["hover"],
             width=200,
         ).pack(anchor="w", padx=25, pady=(0, 25))
+    
     def change_mode(self, mode):
         apply_appearance(mode)
         self.current_mode = mode

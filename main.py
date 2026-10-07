@@ -668,10 +668,15 @@ class PharmacyApp(ctk.CTk):
 
         legend = ctk.CTkFrame(wrapper, fg_color="transparent")
         legend.pack(pady=(0, 10))
-        ctk.CTkLabel(legend, text="🟧 Upcoming expiry   🟥 Already expired", text_color=self.theme["muted"]).pack()
-        result = ctk.CTkLabel(wrapper, text="", text_color=self.theme["muted"])
-        result.pack(pady=10)
+        upcoming_swatch = ctk.CTkFrame(legend, width=16, height=16, fg_color="orange", corner_radius=3)
+        upcoming_swatch.pack(side="left", padx=(0, 6))
+        upcoming_swatch.pack_propagate(False)
+        ctk.CTkLabel(legend, text="Upcoming expiry", text_color=self.theme["muted"]).pack(side="left", padx=(0, 20))
 
+        expired_swatch = ctk.CTkFrame(legend, width=16, height=16, fg_color="#DC2626", corner_radius=3)
+        expired_swatch.pack(side="left", padx=(0, 6))
+        expired_swatch.pack_propagate(False)
+        ctk.CTkLabel(legend, text="Already expired", text_color=self.theme["muted"]).pack(side="left")
         def show_selected():
             selected = cal.get_date()
             try:

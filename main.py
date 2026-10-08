@@ -270,6 +270,11 @@ class PharmacyApp(ctk.CTk):
         search.bind("<KeyRelease>", live_filter)
         category.configure(command=lambda choice: live_filter())
         stock_filter.configure(command=lambda choice: live_filter())
+        def clear_filters():
+          search.delete(0, "end")
+          category.set("All")
+          stock_filter.set("All Stock")
+          self.refresh_medicine_table()
         ctk.CTkButton(
             top,
             text="Search / Filter",
@@ -278,6 +283,13 @@ class PharmacyApp(ctk.CTk):
             ),
             fg_color=self.theme["primary"],
             hover_color=self.theme["hover"],
+        ).pack(side="left", padx=(8, 0))
+
+        ctk.CTkButton(
+            top,
+            text="Clear",
+            command=clear_filters,
+            width=90,
         ).pack(side="left", padx=(8, 0))
 
         ctk.CTkButton(

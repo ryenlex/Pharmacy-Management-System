@@ -621,6 +621,10 @@ class PharmacyApp(ctk.CTk):
                     add_medicine(name, category, quantity, price, expiry)
 
                 dialog.destroy()
+                self.show_error_dialog(
+                "Success",
+                "Medicine saved successfully."
+            )
                 self.show_medicines()
                 
 

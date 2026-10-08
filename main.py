@@ -129,6 +129,7 @@ class PharmacyApp(ctk.CTk):
         "Dashboard": self.show_dashboard,
         "Medicine Management": self.show_medicines,
         "Medicine Categories": self.show_categories,
+        "Low Stock Items": self.show_low_stock,
         "Calendar": self.show_calendar,
         "Settings": self.show_settings,
      }.get(text, self.show_dashboard)()
@@ -181,7 +182,7 @@ class PharmacyApp(ctk.CTk):
 
         self.card(cards, "Medicine Types", total, command=self.show_categories)
         self.card(cards, "Total Stock", stock, command=self.show_medicines)
-        self.card(cards,"Low Stock Items", low, command=lambda: self.go_to_medicines_with_filter(stock_filter="Low Stock"),)
+        self.card(cards,"Low Stock Items", low, command=self.show_low_stock)
         self.card(cards, "Expired Items", expired, command=lambda: self.go_to_medicines_with_filter(stock_filter="Expired"),)
         self.card(cards, "Expiring Soon (30d)", expiring_soon, command=self.show_calendar)
         ctk.CTkLabel(
@@ -330,7 +331,62 @@ class PharmacyApp(ctk.CTk):
             text="No categories found yet. Add a medicine to create one.",
             text_color=self.theme["muted"],
         ).pack(anchor="w", padx=8, pady=20)
-    
+
+    def show_low_stock(self):
+        self.page_title.configure(text="Low Stock Items")
+        self.clear_page()
+
+        all_meds = fetch_medicines()
+        low_stock_meds = [m for m in all_meds if m[3] <= self.low_stock_threshold]
+        low_stock_meds.sort(key=lambda m: m[3])
+
+        info = ctk.CTkLabel(
+            self.page,
+            text=f"Showing medicines at or below your threshold of {self.low_stock_threshold} units.",
+            text_color=self.theme["muted"],
+        )
+        info.pack(anchor="w", padx=8, pady=(5, 15))
+
+        table = ctk.CTkFrame(self.page, corner_radius=16, fg_color=self.theme["card"])
+        table.pack(fill="both", expand=True, padx=8, pady=8)
+
+        headers = ["ID", "Name", "Category", "Quantity", "Price", "Expiry", "Actions"]
+        for i, header in enumerate(headers):
+            ctk.CTkLabel(
+                table,
+                text=header,
+                font=ctk.CTkFont(weight="bold"),
+                text_color=self.theme["muted"],
+            ).grid(row=0, column=i, padx=8, pady=12, sticky="w")
+
+        row_index = 1
+        for med in low_stock_meds:
+            med_id, name, category_name, quantity, price, expiry, last_updated = med
+
+            values = [med_id, name, category_name, quantity, f"₹{price:.2f}", expiry]
+            for col, value in enumerate(values):
+                ctk.CTkLabel(
+                    table,
+                    text=str(value),
+                    text_color=self.theme["text"],
+                ).grid(row=row_index, column=col, padx=8, pady=9, sticky="w")
+              
+                ctk.CTkButton(
+                    table,
+                    text="Edit",
+                    width=60,
+                    command=lambda m=med: self.open_medicine_form(m),
+                ).grid(row=row_index, column=6, padx=5, sticky="w")
+                
+                row_index += 1
+
+        if row_index == 1:
+            ctk.CTkLabel(
+                table,
+                text="No medicines are currently low on stock.",
+                text_color=self.theme["muted"],
+            ).grid(row=1, column=0, columnspan=7, pady=40)
+ 
     def go_to_medicines_with_filter(self, stock_filter="All Stock", category="All"):
      self.show_medicines()
      self.refresh_medicine_table(stock_filter=stock_filter, category=category)

@@ -371,14 +371,14 @@ class PharmacyApp(ctk.CTk):
                     text_color=self.theme["text"],
                 ).grid(row=row_index, column=col, padx=8, pady=9, sticky="w")
               
-                ctk.CTkButton(
-                    table,
-                    text="Edit",
-                    width=60,
-                    command=lambda m=med: self.open_medicine_form(m),
+            ctk.CTkButton(
+                table,
+                text="Edit",
+                width=60,
+                command=lambda m=med: self.open_medicine_form(m),
                 ).grid(row=row_index, column=6, padx=5, sticky="w")
                 
-                row_index += 1
+            row_index += 1
 
         if row_index == 1:
             ctk.CTkLabel(
@@ -509,10 +509,14 @@ class PharmacyApp(ctk.CTk):
     def open_medicine_form(self, medicine=None):
         dialog = ctk.CTkToplevel(self)
         dialog.title("Edit Medicine" if medicine else "Add Medicine")
-        dialog.geometry("450x520")
         dialog.transient(self)
         dialog.grab_set()
-
+        dialog_width, dialog_height = 450, 640
+        screen_width = dialog.winfo_screenwidth()
+        screen_height = dialog.winfo_screenheight()
+        x = (screen_width // 2) - (dialog_width // 2)
+        y = (screen_height // 2) - (dialog_height // 2)
+        dialog.geometry(f"{dialog_width}x{dialog_height}+{x}+{y}")
         fields = {}
         error_labels = {}
         labels = [
@@ -548,7 +552,7 @@ class PharmacyApp(ctk.CTk):
         if medicine:
             _, name, category, quantity, price, expiry, _ = medicine
             fields["name"].insert(0, name)
-            fields["category"].insert(0, category)
+            fields["category"].set(category)
             fields["quantity"].insert(0, str(quantity))
             fields["price"].insert(0, str(price))
             fields["expiry"].insert(0, expiry)

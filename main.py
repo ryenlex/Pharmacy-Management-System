@@ -12,6 +12,8 @@ from database.db import (
     dashboard_counts,
     fetch_categories,
     add_category,
+    find_duplicate_medicine,
+    add_quantity_to_medicine,
 )
 from ui.theme import THEMES, apply_appearance, set_theme
 from ui.settings import load_settings, save_settings
@@ -561,14 +563,7 @@ class PharmacyApp(ctk.CTk):
            for key, entry in fields.items():
              entry.configure(border_color=("#979DA2", "#565B5E"))  # default CTk border
              error_labels[key].configure(text="")
-        if medicine:
-            _, name, category, quantity, price, expiry, _ = medicine
-            fields["name"].insert(0, name)
-            fields["category"].set(category)
-            fields["quantity"].insert(0, str(quantity))
-            fields["price"].insert(0, str(price))
-            fields["expiry"].insert(0, expiry)
-
+        
         def save():
                 clear_errors()
                 has_error = False
@@ -599,7 +594,6 @@ class PharmacyApp(ctk.CTk):
                    has_error = True
                    price = None
                 
-
                 if not expiry:
                     error_labels["expiry"].configure(text="Expiry date is required")
                     fields["expiry"].configure(border_color="#DC2626")
@@ -613,19 +607,35 @@ class PharmacyApp(ctk.CTk):
                        has_error = True
                 if has_error:
                     return
+                add_category(category)
+             
+                def finish():
+                    dialog.destroy()
+                    self.show_error_dialog("Success", "Medicine saved successfully.")
+                    self.show_medicines()
+                
                 if medicine:
                     update_medicine(
-                        medicine[0], name, category, quantity, price, expiry
-                    )
-                else:
+                    medicine[0], name, category, quantity, price, expiry)
+                    finish()
+                    return
                     add_medicine(name, category, quantity, price, expiry)
+                    finish()
 
-                dialog.destroy()
-                self.show_error_dialog(
-                "Success",
-                "Medicine saved successfully."
-            )
-                self.show_medicines()
+                existing = find_duplicate_medicine(name, category, expiry)
+                if existing:
+                    def add_to_existing():
+                        add_quantity_to_medicine(existing[0], quantity)
+                        finish()
+
+                    def add_separately():
+                        add_medicine(name, category, quantity, price, expiry)
+                        finish()
+
+                    self.show_duplicate_dialog(
+                        existing, quantity, add_to_existing, add_separately
+                    )
+                    return
                 
 
         ctk.CTkButton(
@@ -710,7 +720,62 @@ class PharmacyApp(ctk.CTk):
             command=dialog.destroy,
             width=100,
         ).pack(pady=10)
-    # ---------- Calendar ----------
+
+    def show_duplicate_dialog(self, existing, new_quantity, on_add_to_existing, on_add_separate):
+        dialog = ctk.CTkToplevel(self)
+        dialog.title("Possible Duplicate")
+        dialog.geometry("440x240")
+        dialog.transient(self)
+        dialog.grab_set()
+        dialog.configure(fg_color=self.theme["card"])
+        message = (
+            f"{existing[1]} ({existing[2]}) expiring {existing[5]} already exists "
+            f"with quantity {existing[3]}.\n\n"
+            f"What would you like to do with the {new_quantity} new units?"
+        )
+        ctk.CTkLabel(
+            dialog,
+            text=message,
+            text_color=self.theme["text"],
+            wraplength=380,
+            justify="center",
+        ).pack(padx=25, pady=(25, 15))
+
+        def choose(action):
+            dialog.destroy()
+            action()
+
+        btn_row = ctk.CTkFrame(dialog, fg_color="transparent")
+        btn_row.pack(pady=10)
+        ctk.CTkButton(
+            btn_row,
+            text="Add to existing",
+            fg_color=self.theme["primary"],
+            hover_color=self.theme["hover"],                         
+            command=lambda: choose(on_add_to_existing),
+            width=130,
+        ).pack(side="left", padx=6)
+
+        ctk.CTkButton(
+            btn_row,
+            text="Add separately",
+            fg_color="transparent",
+            border_width=1,
+            text_color=self.theme["text"],
+            command=lambda: choose(on_add_separate),
+            width=130,
+        ).pack(side="left", padx=6)
+
+        ctk.CTkButton(
+            btn_row,
+            text="Cancel",
+            fg_color="transparent",
+            border_width=1,
+            text_color=self.theme["text"],
+            command=dialog.destroy,
+            width=80,
+        ).pack(side="left", padx=6)
+    
     def show_calendar(self):
         self.page_title.configure(text="Calendar")
         self.clear_page()

@@ -1,11 +1,10 @@
-<!doctype html>
-<html>
-<head><title>Pharmacy Management System</title></head>
-<body>
-  <h1>Dashboard</h1>
-  <p>Medicine types: {{ total }}</p>
-  <p>Total stock: {{ stock }}</p>
-  <p>Low stock items: {{ low }}</p>
-  <p>Expired items: {{ expired }}</p>
-</body>
-</html>
+{% extends "base.html" %}
+{% block content %}
+<h2>Dashboard</h2>
+<div class="cards">
+  <div class="card"><div class="label">Medicine Types</div><div class="value">{{ total }}</div></div>
+  <div class="card"><div class="label">Total Stock</div><div class="value">{{ stock }}</div></div>
+  <div class="card alert"><div class="label">Low Stock Items</div><div class="value">{{ low }}</div></div>
+  <div class="card alert"><div class="label">Expired Items</div><div class="value">{{ expired }}</div></div>
+</div>
+{% endblock %}

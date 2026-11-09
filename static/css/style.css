@@ -1,0 +1,10 @@
+body { margin: 0; font-family: Arial, sans-serif; background: #f4f7fc; color: #1a2b4a; }
+header { background: #0b3a8c; color: white; padding: 18px 30px; border-bottom: 4px solid #1ba8e0; }
+header h1 { margin: 0; font-size: 22px; }
+main { max-width: 1000px; margin: 30px auto; padding: 0 20px; }
+.cards { display: flex; flex-wrap: wrap; gap: 16px; }
+.card { flex: 1; min-width: 180px; background: white; border-radius: 12px; padding: 20px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
+.card .label { color: #5b6b8c; font-size: 14px; }
+.card .value { font-size: 32px; font-weight: bold; margin-top: 8px; }
+.card.alert .value { color: #c62828; }

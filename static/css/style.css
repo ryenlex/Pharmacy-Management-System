@@ -8,3 +8,16 @@ main { max-width: 1000px; margin: 30px auto; padding: 0 20px; }
 .card .label { color: #5b6b8c; font-size: 14px; }
 .card .value { font-size: 32px; font-weight: bold; margin-top: 8px; }
 .card.alert .value { color: #c62828; }
+
+header { display: flex; justify-content: space-between; align-items: center; }
+header a { color: white; }
+.login-box { max-width: 380px; margin: 40px auto; background: white; padding: 28px;
+             border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
+.login-box label { display: block; margin-top: 14px; font-size: 14px; color: #5b6b8c; }
+.login-box input[name="username"], .login-box input[name="password"] {
+  width: 100%; box-sizing: border-box; padding: 10px; margin-top: 6px;
+  border: 1px solid #cfd8e8; border-radius: 8px; }
+.role-pick label { display: inline-block; margin-right: 18px; color: #1a2b4a; }
+.login-box button { width: 100%; margin-top: 20px; padding: 12px; border: 0; border-radius: 8px;
+                    background: #0b3a8c; color: white; font-size: 16px; cursor: pointer; }
+.error { color: #c62828; background: #fdecea; padding: 8px 12px; border-radius: 8px; }

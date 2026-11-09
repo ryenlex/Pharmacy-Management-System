@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% block title %}Login{% endblock %}
+{% block content %}
+<div class="login-box">
+  <h2>Sign in</h2>
+  {% for message in get_flashed_messages() %}
+    <p class="error">{{ message }}</p>
+  {% endfor %}
+  <form method="post">
+    <label>Login as</label>
+    <div class="role-pick">
+      <label><input type="radio" name="role" value="admin" checked> Admin</label>
+      <label><input type="radio" name="role" value="member"> Member</label>
+    </div>
+    <label for="username">User ID</label>
+    <input id="username" name="username" required>
+    <label for="password">Password</label>
+    <input id="password" name="password" type="password" required>
+    <button type="submit">Sign in</button>
+  </form>
+</div>
+{% endblock %}

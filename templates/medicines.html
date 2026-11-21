@@ -2,6 +2,10 @@
 {% block title %}Medicines{% endblock %}
 {% block content %}
 <h2>Medicines</h2>
+{% for category, message in get_flashed_messages(with_categories=true) %}
+  <p class="{{ 'notice' if category == 'success' else 'error' }}">{{ message }}</p>
+{% endfor %}
+<p><a class="btn btn-primary" href="{{ url_for('add_medicine_page') }}">+ Add Medicine</a></p>
 <table class="data-table">
   <thead>
     <tr><th>ID</th><th>Name</th><th>Category</th><th>Quantity</th><th>Price</th><th>Expiry</th><th>Last Updated</th></tr>

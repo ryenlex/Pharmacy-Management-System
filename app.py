@@ -1,8 +1,9 @@
 import sqlite3
 from functools import wraps
 from flask import Flask, render_template, request, redirect, url_for, session, flash
-from database.db import initialize_database, dashboard_counts, initialize_users, verify_user, create_user, fetch_medicines
-import os
+from database.db import initialize_database, dashboard_counts, initialize_users, verify_user, create_user, fetch_medicines, fetch_categories, add_category, add_medicine
+import os 
+from datetime import datetime
 import threading
 import webbrowser
 app = Flask(__name__)
@@ -91,6 +92,59 @@ def home():
 @admin_required
 def medicines():
     return render_template("medicines.html", medicines=fetch_medicines())
+
+def validate_medicine(form):
+    errors = {}
+    name = form["name"]
+    if not name:
+        errors["name"] = "Name is required."
+    category = form["category"] or "Other"
+
+    quantity = None
+    try:
+        quantity = int(form["quantity"])
+        if quantity < 0:
+            raise ValueError
+    except ValueError:
+        errors["quantity"] = "Enter a valid non-negative whole number."
+
+    price = None
+    try:
+        price = float(form["price"])
+        if price < 0:
+            raise ValueError
+    except ValueError:
+        errors["price"] = "Enter a valid non-negative price."
+
+    if not form["expiry"]:
+        errors["expiry"] = "Expiry date is required."
+    else:
+        try:
+            datetime.strptime(form["expiry"], "%Y-%m-%d")
+        except ValueError:
+            errors["expiry"] = "Use the format YYYY-MM-DD."
+
+    cleaned = {"name": name, "category": category, "quantity": quantity,
+               "price": price, "expiry": form["expiry"]}
+    return errors, cleaned
+
+
+@app.route("/medicines/add", methods=["GET", "POST"])
+@admin_required
+def add_medicine_page():
+    form = {"name": "", "category": "", "quantity": "", "price": "", "expiry": ""}
+    errors = {}
+    if request.method == "POST":
+        form = {key: request.form.get(key, "").strip() for key in form}
+        errors, cleaned = validate_medicine(form)
+        if not errors:
+            add_category(cleaned["category"])
+            add_medicine(cleaned["name"], cleaned["category"], cleaned["quantity"],
+                         cleaned["price"], cleaned["expiry"])
+            flash("Medicine saved successfully.", "success")
+            return redirect(url_for("medicines"))
+    return render_template("add_medicine.html", form=form, errors=errors,
+                           categories=fetch_categories())
 
 if __name__ == "__main__":
     # open the browser once (not again on every auto-reload)

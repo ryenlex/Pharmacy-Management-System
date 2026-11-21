@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% block title %}Add Medicine{% endblock %}
+{% block content %}
+<div class="form-box">
+  <h2>Add Medicine</h2>
+  <form method="post" novalidate>
+    <label for="name">Name</label>
+    <input id="name" name="name" value="{{ form['name'] }}">
+    {% if errors.get('name') %}<p class="field-error">{{ errors['name'] }}</p>{% endif %}
+
+    <label for="category">Category (type a new one to create it)</label>
+    <input id="category" name="category" list="cats" value="{{ form['category'] }}">
+    <datalist id="cats">
+      {% for c in categories %}<option value="{{ c }}">{% endfor %}
+    </datalist>
+
+    <label for="quantity">Quantity</label>
+    <input id="quantity" name="quantity" value="{{ form['quantity'] }}">
+    {% if errors.get('quantity') %}<p class="field-error">{{ errors['quantity'] }}</p>{% endif %}
+
+    <label for="price">Price (₹)</label>
+    <input id="price" name="price" value="{{ form['price'] }}">
+    {% if errors.get('price') %}<p class="field-error">{{ errors['price'] }}</p>{% endif %}
+
+    <label for="expiry">Expiry date</label>
+    <input id="expiry" name="expiry" type="date" value="{{ form['expiry'] }}">
+    {% if errors.get('expiry') %}<p class="field-error">{{ errors['expiry'] }}</p>{% endif %}
+
+    <button type="submit" class="btn btn-primary">Save Medicine</button>
+    <a class="btn-link" href="{{ url_for('medicines') }}">Cancel</a>
+  </form>
+</div>
+{% endblock %}

@@ -1,6 +1,7 @@
+import sqlite3
 from functools import wraps
 from flask import Flask, render_template, request, redirect, url_for, session, flash
-from database.db import initialize_database, dashboard_counts, initialize_users, verify_user
+from database.db import initialize_database, dashboard_counts, initialize_users, verify_user, create_user
 import os
 import threading
 import webbrowser
@@ -36,6 +37,32 @@ def login():
            return redirect(url_for("home"))
         flash("Invalid ID, password or login type.")
     return render_template("login.html")
+
+@app.route("/register", methods=["GET", "POST"])
+def register():
+    if request.method == "POST":
+        full_name = request.form.get("full_name", "").strip()
+        username = request.form.get("username", "").strip()
+        password = request.form.get("password", "")
+        confirm = request.form.get("confirm", "")
+        error = None
+        if not full_name:
+            error = "Full name is required."
+        elif len(username) < 3:
+            error = "User ID must be at least 3 characters."
+        elif len(password) < 6:
+            error = "Password must be at least 6 characters."
+        elif password != confirm:
+            error = "Passwords do not match."
+        if not error:
+            try:
+                create_user(username, password, full_name, "member")
+                flash("Account created. You can now sign in as a Member.", "success")
+                return redirect(url_for("login"))
+            except sqlite3.IntegrityError:
+                error = "That User ID is already taken."
+        flash(error, "error")
+    return render_template("register.html")
 
 @app.route("/logout")
 def logout():

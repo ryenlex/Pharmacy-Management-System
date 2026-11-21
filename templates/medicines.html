@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% block title %}Medicines{% endblock %}
+{% block content %}
+<h2>Medicines</h2>
+<table class="data-table">
+  <thead>
+    <tr><th>ID</th><th>Name</th><th>Category</th><th>Quantity</th><th>Price</th><th>Expiry</th><th>Last Updated</th></tr>
+  </thead>
+  <tbody>
+    {% for m in medicines %}
+    <tr>
+      <td>{{ m[0] }}</td>
+      <td>{{ m[1] }}</td>
+      <td>{{ m[2] }}</td>
+      <td>{{ m[3] }}</td>
+      <td>₹{{ '%.2f'|format(m[4]) }}</td>
+      <td>{{ m[5] }}</td>
+      <td>{{ m[6] or '—' }}</td>
+    </tr>
+    {% else %}
+    <tr><td colspan="7">No medicines found.</td></tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% endblock %}

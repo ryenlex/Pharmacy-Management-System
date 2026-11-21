@@ -1,0 +1,9 @@
+{% extends "base.html" %}
+{% block title %}Access denied{% endblock %}
+{% block content %}
+<div class="login-box">
+  <h2>Access denied</h2>
+  <p class="error">This page is only for administrators.</p>
+  <p class="alt"><a href="{{ url_for('home') }}">Back to dashboard</a></p>
+</div>
+{% endblock %}

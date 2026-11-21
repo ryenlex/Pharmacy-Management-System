@@ -13,6 +13,14 @@
     <span>{{ session['full_name'] }} ({{ session['role'] }}) · <a href="{{ url_for('logout') }}">Logout</a></span>
   {% endif %}
 </header>
+  {% if session.get('username') %}
+<nav>
+  <a href="{{ url_for('home') }}">Dashboard</a>
+  {% if session['role'] == 'admin' %}
+    <a href="{{ url_for('medicines') }}">Medicines</a>
+  {% endif %}
+</nav>
+{% endif %}
   <main>{% block content %}{% endblock %}</main>
 </body>
 </html>

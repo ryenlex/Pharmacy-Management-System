@@ -1,7 +1,7 @@
 import sqlite3
 from functools import wraps
 from flask import Flask, render_template, request, redirect, url_for, session, flash
-from database.db import initialize_database, dashboard_counts, initialize_users, verify_user, create_user
+from database.db import initialize_database, dashboard_counts, initialize_users, verify_user, create_user, fetch_medicines
 import os
 import threading
 import webbrowser
@@ -21,6 +21,15 @@ def login_required(view):
         return view(*args, **kwargs)
     return wrapped
 
+def admin_required(view):
+    @wraps(view)
+    def wrapped(*args, **kwargs):
+        if "user_id" not in session:
+            return redirect(url_for("login"))
+        if session.get("role") != "admin":
+            return render_template("forbidden.html"), 403
+        return view(*args, **kwargs)
+    return wrapped
 
 @app.route("/login", methods=["GET", "POST"])
 def login():
@@ -77,6 +86,11 @@ def home():
     return render_template(
         "dashboard.html", total=total, stock=stock, low=low, expired=expired
     )
+
+@app.route("/medicines")
+@admin_required
+def medicines():
+    return render_template("medicines.html", medicines=fetch_medicines())
 
 if __name__ == "__main__":
     # open the browser once (not again on every auto-reload)

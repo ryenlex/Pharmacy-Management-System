@@ -8,12 +8,13 @@
 <p><a class="btn btn-primary" href="{{ url_for('add_medicine_page') }}">+ Add Medicine</a></p>
 <table class="data-table">
   <thead>
-    <tr><th>ID</th><th>Name</th><th>Category</th><th>Quantity</th><th>Price</th><th>Expiry</th><th>Last Updated</th></tr>
+    <tr><th>ID</th><th>Name</th><th>Category</th><th>Quantity</th><th>Price</th><th>Expiry</th><th>Last Updated</th><th>Actions</th></tr>
   </thead>
   <tbody>
     {% for m in medicines %}
     <tr>
       <td>{{ m[0] }}</td>
+      <td><a href="{{ url_for('edit_medicine_page', medicine_id=m[0]) }}">Edit</a></td>
       <td>{{ m[1] }}</td>
       <td>{{ m[2] }}</td>
       <td>{{ m[3] }}</td>

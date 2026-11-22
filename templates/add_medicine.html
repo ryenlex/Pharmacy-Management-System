@@ -2,7 +2,7 @@
 {% block title %}Add Medicine{% endblock %}
 {% block content %}
 <div class="form-box">
-  <h2>Add Medicine</h2>
+  <h2>{{ heading }}</h2>
   <form method="post" novalidate>
     <label for="name">Name</label>
     <input id="name" name="name" value="{{ form['name'] }}">

@@ -1,7 +1,7 @@
 import sqlite3
 from functools import wraps
-from flask import Flask, render_template, request, redirect, url_for, session, flash
-from database.db import initialize_database, dashboard_counts, initialize_users, verify_user, create_user, fetch_medicines, fetch_categories, add_category, add_medicine
+from flask import Flask, render_template, request, redirect, url_for, session, flash, abort
+from database.db import initialize_database, dashboard_counts, initialize_users, verify_user, create_user,fetch_medicine, fetch_medicines, fetch_categories, add_category, add_medicine, update_medicine
 import os 
 from datetime import datetime
 import threading
@@ -93,6 +93,12 @@ def home():
 def medicines():
     return render_template("medicines.html", medicines=fetch_medicines())
 
+def normalize_date(text):
+    try:
+        return datetime.strptime(text, "%Y-%m-%d").strftime("%Y-%m-%d")
+    except (ValueError, TypeError):
+        return text or ""
+
 def validate_medicine(form):
     errors = {}
     name = form["name"]
@@ -125,7 +131,7 @@ def validate_medicine(form):
             errors["expiry"] = "Use the format YYYY-MM-DD."
 
     cleaned = {"name": name, "category": category, "quantity": quantity,
-               "price": price, "expiry": form["expiry"]}
+               "price": price, "expiry": normalize_date(form["expiry"])}
     return errors, cleaned
 
 
@@ -144,7 +150,33 @@ def add_medicine_page():
             flash("Medicine saved successfully.", "success")
             return redirect(url_for("medicines"))
     return render_template("add_medicine.html", form=form, errors=errors,
-                           categories=fetch_categories())
+                           categories=fetch_categories(), heading="Add Medicine")
+
+@app.route("/medicines/<int:medicine_id>/edit", methods=["GET", "POST"])
+@admin_required
+def edit_medicine_page(medicine_id):
+    medicine = fetch_medicine(medicine_id)
+    if medicine is None:
+        abort(404)
+    form = {
+        "name": medicine[1],
+        "category": medicine[2],
+        "quantity": str(medicine[3]),
+        "price": str(medicine[4]),
+        "expiry": normalize_date(medicine[5]),
+    }
+    errors = {}
+    if request.method == "POST":
+        form = {key: request.form.get(key, "").strip() for key in form}
+        errors, cleaned = validate_medicine(form)
+        if not errors:
+            add_category(cleaned["category"])
+            update_medicine(medicine_id, cleaned["name"], cleaned["category"],
+                            cleaned["quantity"], cleaned["price"], cleaned["expiry"])
+            flash("Medicine updated successfully.", "success")
+            return redirect(url_for("medicines"))
+    return render_template("add_medicine.html", form=form, errors=errors,
+                           categories=fetch_categories(), heading="Edit Medicine")
 
 if __name__ == "__main__":
     # open the browser once (not again on every auto-reload)

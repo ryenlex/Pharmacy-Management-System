@@ -141,6 +141,16 @@ def fetch_medicines():
             ORDER BY name COLLATE NOCASE
             """
         ).fetchall()
+
+def fetch_medicine(medicine_id):
+    with get_connection() as conn:
+        return conn.execute(
+            """
+            SELECT id, name, category, quantity, price, expiry_date, last_updated
+            FROM medicines WHERE id = ?
+            """,
+            (medicine_id,),
+        ).fetchone()
     
 def fetch_categories():
     with get_connection() as conn:
